@@ -6,12 +6,12 @@ void stepperSetup() {
   	pinMode(stepper_step,OUTPUT);
   	stepper.setMaxSpeed(1000);
   	stepper.setAcceleration(1000);
-  	//stepper.moveTo(4);
+  	stepper.moveTo(16);
 }
 
 void GoStepper() {
 	if(stepper.distanceToGo() == 0){
-		//stepper.move(4);
+			stepper.move(16);
 	}
 
 }

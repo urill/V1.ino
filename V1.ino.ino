@@ -4,17 +4,19 @@
 
 #include <AccelStepper.h>
 #include <NewPing.h>
-//#include "MotorControllerMaster.h"
 #include <Wire.h>
 #include <math.h>
 #include <DistanceGP2Y0A21YK.h>
 #include <DistanceGP2Y0A21YK_LUTs.h>
+#include <LiquidCrystal.h>
+
 
 #include "Definitions.h"
 #include "flame.h"
 #include "rangeFinder.h"
 void setup()
 {	
+
 	Wire.begin();
 	c.begin();
 
@@ -22,95 +24,108 @@ void setup()
 	rearIR.begin(rear_ir_pin);
 
 	Serial.begin(9600);
-	delay(1000);
-	c.setAcceleration(400,600,400,600);
+	
+	c.setAcceleration(1000,1000,1000,1000);
 	c.brake();
-	c.goVelocity(100, 0);
-	delay(200);
-	driveState = goStraight;
+	//c.goVelocity(100, 0);
+	//delay(200);
+	lcd.begin(16,2);
+		driveState = goStraight;
+
+	
 }
 
 void loop()
 {	
-	
+	getCoordinate();
 	sendHb();
 	checkCliff();
 	pingSonar();
 	//checkFlame();
 	getReferencePosition();
+	getCurrentPosition();
 	Go();
 	checkSideWall();
-	 //Serial.print(frontDist);
-	 //Serial.print(" ,");
-	 //Serial.println(rearDist);
+	 lcd.setCursor(0,1);
+	 lcd.print(x);
+	 lcd.print(" ,");
+	 lcd.print(y);
+	 lcd.print(" ,");
+	 lcd.println(r);
+	 // lcd.setCursor(0,1);
+	 //  lcd.println(analogRead(light_sensor_pin) > lightSensorVal);
 	//Serial.println(sideWallAngle);
-	Serial.println( sideWallDistance - threshHold);
-
+	Serial.println( sideWallDistance - sideLimit );
+	//c.goVelocity(-100,0);
 
 	if(facingCliff || nearFrontWall)
 	{
 		//turn left 90 degrees
 		//Serial.println("set to turn state");
-      if(stop_move){
-            c.goVelocity(0,0);
-			if(c.isStandby()){
-				//Serial.println("standby");
+        if(stop_move){
+        	driveState = brake;
+			if(c.isStandby())
+			{
 				stop_move = false;
-                driveState = turnLeft_90;
-			}               
+			}
+		}
+
+		else if(backUp)
+		{	
+			lcd.setCursor(0,0);
+			lcd.println("backUp");
+			if(reference_l - l < 50)//5cm
+				driveState = backup;	
+			else
+			{ 
+				backUp = false;
+				stop_move = true;
+				//getReferencePos = true;
+			}
+		}
+		else
+		    driveState = turnLeft_90;
+
+
       }
               
 		//flag set back to false in Go method!
-	}
-	if(rightIsOpen && !atCliff && !nearFrontWall)
+	
+
+	if( rightIsOpen && !facingCliff && !atCliff && !nearFrontWall)
 	{
 		//turn to open area
-		//Serial.println("wrong");
 		//flag set back to false in Go method!
 		if(stop_move){
-            c.goVelocity(0,0);
-			if(c.isStandby()){
-				//Serial.println("standby");
-				stop_move = false;
-				driveState = turnToOpenArea;
-			}
+				driveState = brake;			
+				if(c.isStandby())
+				{
+					stop_move = false;
+					driveState = turnToOpenArea;
+				}
 		}
 	}
 	
 	
-	//if(!nearFrontWall && !rightIsOpen){
-	//	Serial.println("follow wall");
+	if(!facingCliff && !atCliff && !nearFrontWall && !rightIsOpen && driveState != alignWall){
+		if(abs(sideWallDistance - sideLimit) > 1.5 )
+		{
+			if(driveState != followWall) getReferencePos = true;
+		//Serial.println("follow wall");
 
-	if(sideWallDistance - threshHold < -2)
-	{
-		Serial.println("turnl");
-		// turn left
-		c.goVelocity(100, 10);
-        //c.goVelocity(100, map(sideWallDistance - threshHold, 0,200, 0,10));
+			driveState = followWall;
+		}
+		// else if (sideWallDistance - sideLimit > 30)
+		// 	driveState = turnRight_90;
+		
+		//else driveState = goStraight;
 	}
-	
-	else if (sideWallDistance - threshHold > 2)
-	{	
-		//turn right
-		c.goVelocity(100, -10);
-        //c.goVelocity(100,map(- sideWallDistance + threshHold, 0,200, -10 , 0));
-	}
-	else
-	{
-		//go straight
-		driveState = goStraight;
-	}
-	//}
-
- // c.goVelocity(100,map(sideWallDistance - threshHold, -500,500, -50,50));
-
 }
 
 void pingSonar()
 {
 	if (millis() - lastPing > 100)
 	{
-		//frontWallDistance = sonar.convert_cm(echoTime);
 		lastPing = millis();
 		sonar.ping_timer(echoCheck);
 	}		
@@ -142,6 +157,12 @@ void checkCliff()
 		lastcc = millis();
 		if(analogRead(light_sensor_pin) > lightSensorVal)
 		{
+			if(facingCliff == false) 
+			{
+				stop_move = true;
+				getReferencePos = true;
+				backUp = true;
+			}
 			facingCliff = true;
 			atCliff = true;
 		}
@@ -185,12 +206,15 @@ void Go()
 	switch (driveState) {
 	    case goStraight:
 	    //Serial.println("straight");
+	    lcd.setCursor(0,0);
+			lcd.println("goStraight");
 		    c.goVelocity(100, 0);
 	    	break;
 	    
 	    case turnLeft_90:
 	    	//Serial.println("im turning");
-
+	    	lcd.setCursor(0,0);
+			lcd.println("turnLeft");
 	    	c.goVelocity(0, 20);          
         	getCurrentPosition();
 			if (r - reference_r  > 80)
@@ -200,6 +224,8 @@ void Go()
                  if(c.isStandby())
                  {
                  	driveState = goStraight;
+
+                 	if(facingCliff) atCliff =true;
 					nearFrontWall = false;
 					facingCliff = false;
                  }
@@ -208,19 +234,25 @@ void Go()
 	      	break;
 	    
 	    case turnRight_90:
-	    	c.goVelocity(0, -90);          
-        	getCurrentPosition();
+	    lcd.setCursor(0,0);
+			lcd.println("turnRight");
+	    	c.goVelocity(0, -20);          
 			if (reference_r - r > 80)
 			{
-				driveState = goStraight;
-				rightIsOpen = false;
+				c.goVelocity(0,0);
+                 if(c.isStandby())
+                 {
+                 	driveState = goStraight;
+					rightIsOpen = false;
+                 }
 			}
 			break;
 
 		case turnToOpenArea:
+		lcd.setCursor(0,0);
+			lcd.println("turnToOpenArea");
 			c.goVelocity(100, 0);
-			getCurrentPosition();
-			if(l - reference_l > 100) //20cm
+			if(l - reference_l > 50) //5cm
 			{
 				getReferencePos = true;
 				driveState = turnRight_90;
@@ -229,8 +261,46 @@ void Go()
 			break;
 		
 		case brake:
-			c.brake();
+			c.goVelocity(0,0);
 			break;
+		
+		case followWall:
+			lcd.setCursor(0,0);
+			lcd.println("followWall");
+			if(abs(reference_r - r) > 5)
+			{
+				driveState = alignWall;
+
+			}
+			else 
+			{
+				if(sideWallDistance - sideLimit < -1.5)
+			 		c.goVelocity(90, map(sideWallDistance - sideLimit, -10,-1, 20,10));
+			 
+				else if(sideWallDistance - sideLimit > 1.5)
+			 		c.goVelocity(90, map(sideWallDistance - sideLimit, 10,1, -20, -10));
+			}
+			 	
+
+
+			break;
+
+		case alignWall:
+			lcd.setCursor(0,0);
+			lcd.println("alignWall");
+			if(frontDist - rearDist <= -1 )
+			 	c.goVelocity(90, map(frontDist - rearDist,-8, -1, 20,10));
+			 
+			else if(frontDist - rearDist >= 1 )
+			 	c.goVelocity(90, map(frontDist - rearDist, 8, 1, -20, -10));
+			else
+			driveState = goStraight;
+			 
+			break;
+		case backup:
+			c.goVelocity(-100,0);
+			break;
+
 
 	    default:
 	    	c.brake();
