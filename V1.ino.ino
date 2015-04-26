@@ -9,13 +9,25 @@
 #include <DistanceGP2Y0A21YK.h>
 #include <DistanceGP2Y0A21YK_LUTs.h>
 #include <LiquidCrystal.h>
-
+#include <L3G.h>
 
 #include "Definitions.h"
 #include "flame.h"
 #include "rangeFinder.h"
 void setup()
 {	
+
+  // if (!gyro.init())
+  // {
+  //   Serial.println("Failed to autodetect gyro type!");
+  //   while (1);
+  // }
+  gyro.init();
+
+  //gyro.enableDefault();
+  //gyro.writeReg(L3G_CTRL_REG4, 0x20); // 2000 dps full scale
+	//gyro.writeReg(L3G_CTRL_REG1, 0x0F); // normal power mode, all axes enabled, 100 Hz
+
 
 	Wire.begin();
 	c.begin();
@@ -36,7 +48,7 @@ void setup()
 }
 
 void loop()
-{	
+{	//gyro.read();
 	getCoordinate();
 	sendHb();
 	checkCliff();
@@ -44,14 +56,15 @@ void loop()
 	//checkFlame();
 	getReferencePosition();
 	getCurrentPosition();
-	Go();
+	//Go();
 	checkSideWall();
 	 lcd.setCursor(0,1);
-	 lcd.print(x);
+	 lcd.print(r);
 	 lcd.print(" ,");
-	 lcd.print(y);
-	 lcd.print(" ,");
-	 lcd.println(r);
+	 c.goVelocity(300,0);
+	 // lcd.print(y);
+	 // lcd.print(" ,");
+	 //lcd.println((int)gyro.g.z);
 	 // lcd.setCursor(0,1);
 	 //  lcd.println(analogRead(light_sensor_pin) > lightSensorVal);
 	//Serial.println(sideWallAngle);
@@ -115,8 +128,8 @@ void loop()
 
 			driveState = followWall;
 		}
-		// else if (sideWallDistance - sideLimit > 30)
-		// 	driveState = turnRight_90;
+		else if (sideWallDistance - sideLimit > 30)
+			driveState = turnRight_90;
 		
 		//else driveState = goStraight;
 	}

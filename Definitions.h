@@ -42,7 +42,7 @@ int y1,y2;
 //light sensors
 */
 const int light_sensor_pin = A0;
-const int lightSensorVal = 400;
+const int lightSensorVal = 500;
 /*
 //stepper
 */
@@ -107,6 +107,7 @@ LiquidCrystal lcd(40,41,42,43,44,45);
 void getCoordinate(){
 	c.getGlobalPosition(&x, &y);
 }
+L3G gyro;
 
 
 
