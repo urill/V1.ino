@@ -71,68 +71,15 @@ void loop()
 	Serial.println( sideWallDistance - sideLimit );
 	//c.goVelocity(-100,0);
 
-	if(facingCliff || nearFrontWall)
+	if(flameDetected)
 	{
-		//turn left 90 degrees
-		//Serial.println("set to turn state");
-        if(stop_move){
-        	driveState = brake;
-			if(c.isStandby())
-			{
-				stop_move = false;
-			}
-		}
-
-		else if(backUp)
-		{	
-			lcd.setCursor(0,0);
-			lcd.println("backUp");
-			if(reference_l - l < 50)//5cm
-				driveState = backup;	
-			else
-			{ 
-				backUp = false;
-				stop_move = true;
-				//getReferencePos = true;
-			}
-		}
-		else
-		    driveState = turnLeft_90;
-
-
-      }
-              
-		//flag set back to false in Go method!
-	
-
-	if( rightIsOpen && !facingCliff && !atCliff && !nearFrontWall)
+		flameNavigator();
+	}
+	else
 	{
-		//turn to open area
-		//flag set back to false in Go method!
-		if(stop_move){
-				driveState = brake;			
-				if(c.isStandby())
-				{
-					stop_move = false;
-					driveState = turnToOpenArea;
-				}
-		}
+		wallFollowNavigator();
 	}
 	
-	
-	if(!facingCliff && !atCliff && !nearFrontWall && !rightIsOpen && driveState != alignWall){
-		if(abs(sideWallDistance - sideLimit) > 1.5 )
-		{
-			if(driveState != followWall) getReferencePos = true;
-		//Serial.println("follow wall");
-
-			driveState = followWall;
-		}
-		else if (sideWallDistance - sideLimit > 30)
-			driveState = turnRight_90;
-		
-		//else driveState = goStraight;
-	}
 }
 
 void pingSonar()
@@ -318,5 +265,77 @@ void Go()
 	    default:
 	    	c.brake();
 	}
+}
+
+void wallFollowNavigator() 
+{
+	if(facingCliff || nearFrontWall)
+	{
+		//turn left 90 degrees
+		//Serial.println("set to turn state");
+        if(stop_move){
+        	driveState = brake;
+			if(c.isStandby())
+			{
+				stop_move = false;
+			}
+		}
+
+		else if(backUp)
+		{	
+			lcd.setCursor(0,0);
+			lcd.println("backUp");
+			if(reference_l - l < 50)//5cm
+				driveState = backup;	
+			else
+			{ 
+				backUp = false;
+				stop_move = true;
+				//getReferencePos = true;
+			}
+		}
+		else
+		    driveState = turnLeft_90;
+
+
+      }
+              
+		//flag set back to false in Go method!
+	
+
+	// if( rightIsOpen && !facingCliff && !atCliff && !nearFrontWall)
+	// {
+	// 	//turn to open area
+	// 	//flag set back to false in Go method!
+	// 	if(stop_move){
+	// 			driveState = brake;			
+	// 			if(c.isStandby())
+	// 			{
+	// 				stop_move = false;
+	// 				driveState = turnToOpenArea;
+	// 			}
+	// 	}
+	// }
+	
+	
+	if(!facingCliff && !atCliff && !nearFrontWall && !rightIsOpen && driveState != alignWall){
+		if(abs(sideWallDistance - sideLimit) > 1.5 )
+		{
+			if(driveState != followWall) getReferencePos = true;
+		//Serial.println("follow wall");
+
+			driveState = followWall;
+		}
+		else if (sideWallDistance - sideLimit > 30)
+			driveState = turnRight_90;
+		
+		//else driveState = goStraight;
+	}
+}
+
+void flameNavigator() 
+{
+	
+
 }
 	
