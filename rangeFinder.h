@@ -11,13 +11,14 @@ void getSideDistance()
 	// 	 y2 = rearDist*cos(-sideWallAngle) + rearIRXpos*cos(sideWallAngle) + rearIRYpos*sin(sideWallAngle);
 		
 	// 	sideWallDistance = (y1 + y2 )/2;
-		// if(frontDist - rearDist > 10){
-		// }
-		// else
+		
 		 if(frontDist != rearDist)
 		{
-			sideWallAngle = atan (11.0 / abs(frontDist - rearDist));
-			sideWallDistance = (sin(sideWallAngle) * frontDist + sin(sideWallAngle) * rearDist) / 2.0; 
+			if(abs(frontDist - rearDist) < 10)
+			{	
+				sideWallAngle = atan (11.0 / abs(frontDist - rearDist));
+				sideWallDistance = (sin(sideWallAngle) * frontDist + sin(sideWallAngle) * rearDist) / 2.0; 
+			}
 		}
 		else
 			sideWallDistance = frontDist;
@@ -37,16 +38,16 @@ void checkSideWall() {
 		rearDist = rearIR.getDistanceCentimeter();
 		getSideDistance();
 	
-		if(frontDist > OpenIrValue && rearDist > OpenIrValue )
-		{
-			if(!rightIsOpen)
-			{
-				//getReferencePos = true;
-				stop_move = true;
-			}
-			rightIsOpen = true;
-		}
-		else
+		if(frontDist < 25 && rearDist < 25 )
+		// {
+		// 	if(!rightIsOpen)
+		// 	{
+		// 		//getReferencePos = true;
+		// 		stop_move = true;
+		// 	}
+		// 	rightIsOpen = true;
+		// }
+		// else
 			atCliff = false;
 
 	}

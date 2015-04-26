@@ -17,14 +17,14 @@
 void setup()
 {	
 
-  // if (!gyro.init())
-  // {
-  //   Serial.println("Failed to autodetect gyro type!");
-  //   while (1);
-  // }
-  gyro.init();
+	// if (!gyro.init())
+	// {
+	// 	Serial.println("Failed to autodetect gyro type!");
+	// 	while (1);
+	// }
+	// gyro.init();
 
-  //gyro.enableDefault();
+	// gyro.enableDefault();
   //gyro.writeReg(L3G_CTRL_REG4, 0x20); // 2000 dps full scale
 	//gyro.writeReg(L3G_CTRL_REG1, 0x0F); // normal power mode, all axes enabled, 100 Hz
 
@@ -42,33 +42,37 @@ void setup()
 	//c.goVelocity(100, 0);
 	//delay(200);
 	lcd.begin(16,2);
-		driveState = goStraight;
+	driveState = goStraight;
+	Serial.println(1);
 
 	
 }
 
 void loop()
-{	//gyro.read();
-	getCoordinate();
+{	
+	// gyro.read();
+	// getCoordinate();
 	sendHb();
 	checkCliff();
 	pingSonar();
 	//checkFlame();
 	getReferencePosition();
 	getCurrentPosition();
-	//Go();
+	Go();
 	checkSideWall();
-	 lcd.setCursor(0,1);
-	 lcd.print(r);
-	 lcd.print(" ,");
-	 c.goVelocity(300,0);
+	lcd.setCursor(0,1);
+	 lcd.print(sideWallDistance);
+	// lcd.print(" ,");
+	//c.goVelocity(300,0);
+	//getFlamePosition(&high, &low, &distanceToFlame, &theta);
+
 	 // lcd.print(y);
 	 // lcd.print(" ,");
 	 //lcd.println((int)gyro.g.z);
 	 // lcd.setCursor(0,1);
 	 //  lcd.println(analogRead(light_sensor_pin) > lightSensorVal);
 	//Serial.println(sideWallAngle);
-	Serial.println( sideWallDistance - sideLimit );
+	Serial.println( 1 );
 	//c.goVelocity(-100,0);
 
 	if(flameDetected)
@@ -109,7 +113,6 @@ void echoCheck()
 	}	
 }
 
-//!!!!!!!!!!not complete
 void checkCliff()
 {
 	if (millis() - lastcc > 20)
@@ -132,7 +135,7 @@ void checkCliff()
 void sendHb()
 {
 	if (millis() - lasthb > 50){
-				//Serial.println("inhb");
+		//Serial.println("inhb");
 		c.heartbeat();
 		lasthb = millis();	
 	}
@@ -271,9 +274,9 @@ void wallFollowNavigator()
 {
 	if(facingCliff || nearFrontWall)
 	{
-		//turn left 90 degrees
-		//Serial.println("set to turn state");
         if(stop_move){
+        	lcd.setCursor(0,1);
+			lcd.println("brake");
         	driveState = brake;
 			if(c.isStandby())
 			{
@@ -283,7 +286,7 @@ void wallFollowNavigator()
 
 		else if(backUp)
 		{	
-			lcd.setCursor(0,0);
+			lcd.setCursor(0,1);
 			lcd.println("backUp");
 			if(reference_l - l < 50)//5cm
 				driveState = backup;	
@@ -296,46 +299,39 @@ void wallFollowNavigator()
 		}
 		else
 		    driveState = turnLeft_90;
-
-
-      }
-              
-		//flag set back to false in Go method!
-	
-
-	// if( rightIsOpen && !facingCliff && !atCliff && !nearFrontWall)
-	// {
-	// 	//turn to open area
-	// 	//flag set back to false in Go method!
-	// 	if(stop_move){
-	// 			driveState = brake;			
-	// 			if(c.isStandby())
-	// 			{
-	// 				stop_move = false;
-	// 				driveState = turnToOpenArea;
-	// 			}
-	// 	}
-	// }
-	
+      }	
 	
 	if(!facingCliff && !atCliff && !nearFrontWall && !rightIsOpen && driveState != alignWall){
-		if(abs(sideWallDistance - sideLimit) > 1.5 )
-		{
-			if(driveState != followWall) getReferencePos = true;
-		//Serial.println("follow wall");
+		
 
+	    if(abs(frontDist - rearDist) != 0 ){
+			driveState = alignWall;
+
+		}
+		else if(abs(sideWallDistance - sideLimit) > 1.5 )
+		{
+			lcd.setCursor(0,1);
+			lcd.println("enterFollw wall");
+			if(driveState != followWall) getReferencePos = true;
 			driveState = followWall;
 		}
-		else if (sideWallDistance - sideLimit > 30)
+		else if (sideWallDistance > 30){
+			lcd.setCursor(0,1);
+			lcd.println("farFromwall, turnR");
 			driveState = turnRight_90;
-		
-		//else driveState = goStraight;
+		}		
+
+		else driveState = goStraight;
 	}
 }
 
 void flameNavigator() 
 {
-	
+	if(stop_move){
+		driveState = brake;
+		if(c.isStandby()) stop_move = false;
+	}
+
 
 }
 	

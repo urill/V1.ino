@@ -4,7 +4,7 @@
 /*
 // ultrasonics
 */
-#define SAFE_DISTANCE 23
+#define SAFE_DISTANCE 20
 
 const int trigger_pin = 22;
 const int echo_pin =  23;
@@ -57,7 +57,11 @@ AccelStepper stepper(AccelStepper::DRIVER ,stepper_step, stepper_dir );
 const int l_flame_sensor_pin = A5;
 const int r_flame_sensor_pin = A6;
 const int flameVal = 500;
-
+int high;
+int low;
+int distanceToFlame;
+int theta;
+//SpinningFlameThing flame(&stepper,-85, 250, 200*8, A1, A2);
 
 
 /*

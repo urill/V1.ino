@@ -17,11 +17,10 @@ void GoStepper() {
 }
 
 void checkFlame() {
-	if(millis() - lastfc ){
-		int r = analogRead(r_flame_sensor_pin);
-		int l = analogRead(l_flame_sensor_pin);
-		
-		if(r < flameVal || l < flameVal)
+	
+		//flame.scan();
+		if(high  < flameVal){
+			if(!flameDetected) stop_move = true;
 			flameDetected = true;
 	}
 }
