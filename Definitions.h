@@ -24,10 +24,10 @@ volatile  int frontDist;
 volatile  int rearDist;
 volatile double sideWallDistance;
 
-const int frontIRXpos = 3;
-const int rearIRXpos = 3;
-const int frontIRYpos = 5.5;
-const int rearIRYpos  = -5.5;
+const float frontIRXpos = 3;
+const float rearIRXpos = 3;
+const float frontIRYpos = 5.5;
+const float rearIRYpos  = -5.5;
 
 double sideWallAngle;
 
