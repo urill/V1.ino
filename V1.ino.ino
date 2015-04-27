@@ -58,13 +58,13 @@ void loop()
 	//checkFlame();
 	getReferencePosition();
 	getCurrentPosition();
-	Go();
+	//Go();
 	checkSideWall();
 	lcd.setCursor(0,1);
 	 lcd.print(sideWallDistance);
 	// lcd.print(" ,");
 	//c.goVelocity(300,0);
-	//getFlamePosition(&high, &low, &distanceToFlame, &theta);
+	//flame.getFlamePosition(&high, &low, &distanceToFlame, &theta);
 
 	 // lcd.print(y);
 	 // lcd.print(" ,");
@@ -117,6 +117,7 @@ void checkCliff()
 {
 	if (millis() - lastcc > 20)
 	{
+		Serial.println(analogRead(light_sensor_pin));
 		lastcc = millis();
 		if(analogRead(light_sensor_pin) > lightSensorVal)
 		{
@@ -211,15 +212,24 @@ void Go()
 			}
 			break;
 
-		case turnToOpenArea:
+		case turnToCandle:
 		lcd.setCursor(0,0);
 			lcd.println("turnToOpenArea");
-			c.goVelocity(100, 0);
-			if(l - reference_l > 50) //5cm
+			if(theta > 0) 
 			{
-				getReferencePos = true;
-				driveState = turnRight_90;
+				if (reference_r < theta)
+					c.goVelocity (0,10);
+				else
+				driveState = brake;
 			}
+			else if(theta < 0){
+				if(reference_r > theta)
+					c.goVelocity(0,-10);			    
+				else
+				driveState = brake;
+			    
+			}
+			
 
 			break;
 		
@@ -330,6 +340,15 @@ void flameNavigator()
 	if(stop_move){
 		driveState = brake;
 		if(c.isStandby()) stop_move = false;
+	}
+	else {
+		if (driveState != turnToCandle)
+			getReferencePos = true;
+		driveState = turnToCandle;
+	}
+
+	if(driveState == brake){
+		//put off the candle
 	}
 
 

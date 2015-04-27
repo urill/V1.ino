@@ -92,7 +92,7 @@ int lastfc = 0;
 /*
 //state machine
 */
-enum dirveStates{goStraight, turnLeft_90, turnRight_90, turnToOpenArea, brake, followWall, alignWall, backup} driveState;
+enum dirveStates{goStraight, turnLeft_90, turnRight_90, turnToCandle, brake, followWall, alignWall, backup} driveState;
 
 bool facingCliff, nearFrontWall, rightIsOpen, atCliff, getReferencePos , stop_move, flameDetected ,backUp= false;
 

@@ -19,7 +19,7 @@ void GoStepper() {
 void checkFlame() {
 	
 		//flame.scan();
-		if(high  < flameVal){
+		if(low  < flameVal){
 			if(!flameDetected) stop_move = true;
 			flameDetected = true;
 	}
